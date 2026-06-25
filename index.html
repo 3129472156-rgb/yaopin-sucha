@@ -1,0 +1,1100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b7a75" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="药品速查" />
+  <title>药品位置速查</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f6f2;
+      --ink: #16211f;
+      --muted: #61706c;
+      --line: #d8ddd6;
+      --panel: #ffffff;
+      --brand: #0b7a75;
+      --brand-2: #0f5d8f;
+      --warm: #b15d17;
+      --danger: #b23a48;
+      --soft: #eaf5f1;
+      --soft-blue: #ebf3fb;
+      --soft-warm: #fff1df;
+      --shadow: 0 8px 24px rgba(20, 30, 28, .08);
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app-shell {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 0 14px 88px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      margin: 0 -14px;
+      padding: calc(env(safe-area-inset-top) + 10px) 14px 12px;
+      background: linear-gradient(180deg, #f5f6f2 0%, rgba(245, 246, 242, .94) 100%);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(216, 221, 214, .8);
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0;
+      line-height: 1.2;
+    }
+
+    .count-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 4px 9px;
+      border-radius: 8px;
+      background: var(--soft);
+      color: var(--brand);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 50px;
+      padding: 6px 8px 6px 12px;
+      border: 2px solid rgba(11, 122, 117, .2);
+      background: var(--panel);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .search-box input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      font-size: 18px;
+    }
+
+    .icon-chip {
+      flex: 0 0 auto;
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      color: #fff;
+      background: var(--brand);
+      font-weight: 900;
+    }
+
+    .clear-btn {
+      flex: 0 0 auto;
+      min-height: 36px;
+      padding: 0 10px;
+      border-radius: 8px;
+      background: #edf1ef;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .tabs {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      z-index: 30;
+      width: min(980px, 100%);
+      transform: translateX(-50%);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      padding: 8px 10px calc(env(safe-area-inset-bottom) + 8px);
+      background: rgba(255, 255, 255, .94);
+      border-top: 1px solid var(--line);
+      backdrop-filter: blur(18px);
+    }
+
+    .tab-btn {
+      min-height: 46px;
+      border-radius: 8px;
+      color: var(--muted);
+      background: transparent;
+      font-weight: 800;
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      background: var(--brand);
+    }
+
+    .section {
+      display: none;
+      padding-top: 12px;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .quick-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 0 12px;
+      scrollbar-width: none;
+    }
+
+    .quick-row::-webkit-scrollbar { display: none; }
+
+    .quick-chip {
+      flex: 0 0 auto;
+      min-height: 38px;
+      padding: 0 12px;
+      border-radius: 8px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .quick-chip.hot {
+      background: var(--soft-warm);
+      border-color: #f2c899;
+      color: var(--warm);
+    }
+
+    .status-line {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 2px 2px 10px;
+    }
+
+    .results {
+      display: grid;
+      gap: 10px;
+    }
+
+    .drug-card, .cabinet-card, .edit-panel, .empty-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .drug-card {
+      padding: 12px;
+    }
+
+    .drug-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .drug-name {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 3px 8px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+      background: var(--soft-blue);
+      color: var(--brand-2);
+    }
+
+    .badge.warn {
+      background: var(--soft-warm);
+      color: var(--warm);
+    }
+
+    .loc-line {
+      display: grid;
+      gap: 6px;
+      margin: 8px 0;
+      font-size: 16px;
+      line-height: 1.35;
+    }
+
+    .loc-line strong {
+      color: var(--brand);
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .mini-tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 3px 7px;
+      border-radius: 8px;
+      background: #f0f2ef;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .primary-btn, .secondary-btn, .danger-btn {
+      min-height: 42px;
+      border-radius: 8px;
+      font-weight: 900;
+    }
+
+    .primary-btn {
+      background: var(--brand);
+      color: #fff;
+    }
+
+    .secondary-btn {
+      background: #edf1ef;
+      color: var(--ink);
+    }
+
+    .danger-btn {
+      background: #f8e7ea;
+      color: var(--danger);
+    }
+
+    .cabinet-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+    }
+
+    .cabinet-card {
+      overflow: hidden;
+    }
+
+    .cabinet-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      background: #e8ebe7;
+    }
+
+    .cabinet-body {
+      padding: 11px;
+    }
+
+    .cabinet-body h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .cabinet-body p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .photo-strip {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 10px 0 2px;
+      scrollbar-width: none;
+    }
+
+    .photo-strip::-webkit-scrollbar { display: none; }
+
+    .photo-thumb-btn {
+      flex: 0 0 96px;
+      padding: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #e8ebe7;
+      border: 2px solid transparent;
+    }
+
+    .photo-thumb-btn img {
+      width: 100%;
+      height: 74px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-thumb-btn span {
+      display: block;
+      padding: 4px 3px 6px;
+      font-weight: 900;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .edit-panel {
+      padding: 12px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      min-height: 42px;
+      padding: 9px 10px;
+      color: var(--ink);
+      background: #fff;
+      outline-color: rgba(11, 122, 117, .35);
+    }
+
+    textarea {
+      min-height: 76px;
+      resize: vertical;
+    }
+
+    .form-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .empty-panel {
+      padding: 18px 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    dialog {
+      width: min(960px, calc(100vw - 18px));
+      height: min(92vh, 900px);
+      padding: 0;
+      border: 0;
+      border-radius: 8px;
+      background: #111;
+      color: #fff;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, .4);
+    }
+
+    dialog::backdrop {
+      background: rgba(0, 0, 0, .68);
+    }
+
+    .photo-modal {
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .modal-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px;
+      background: #111;
+    }
+
+    .modal-title {
+      min-width: 0;
+      font-weight: 900;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .modal-close {
+      min-width: 68px;
+      min-height: 38px;
+      border-radius: 8px;
+      background: #fff;
+      color: #111;
+      font-weight: 900;
+    }
+
+    .modal-scroll {
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      background: #111;
+      text-align: center;
+    }
+
+    .modal-scroll img {
+      width: 100%;
+      height: auto;
+      max-width: none;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(env(safe-area-inset-bottom) + 70px);
+      z-index: 60;
+      transform: translateX(-50%);
+      max-width: min(420px, calc(100vw - 32px));
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(22, 33, 31, .94);
+      color: #fff;
+      font-weight: 800;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+    }
+
+    .toast.show { opacity: 1; }
+
+    @media (min-width: 720px) {
+      .results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .drug-card.featured { grid-column: span 2; }
+      .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      label.full { grid-column: span 2; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="title-row">
+        <h1>药品位置速查</h1>
+        <span class="count-pill" id="drugCount">0 个药</span>
+      </div>
+      <div class="search-box">
+        <span class="icon-chip">查</span>
+        <input id="searchInput" type="search" inputmode="search" autocomplete="off" placeholder="输入药名、首字母、症状" />
+        <button class="clear-btn" id="clearSearch" type="button">清空</button>
+      </div>
+    </header>
+
+    <section class="section active" id="view-search">
+      <div class="quick-row" id="quickRow"></div>
+      <div class="status-line" id="resultStatus"></div>
+      <div class="results" id="results"></div>
+    </section>
+
+    <section class="section" id="view-cabinets">
+      <div class="cabinet-grid" id="cabinetGrid"></div>
+    </section>
+
+    <section class="section" id="view-favorites">
+      <div class="status-line" id="favoriteStatus"></div>
+      <div class="results" id="favorites"></div>
+    </section>
+
+    <section class="section" id="view-edit">
+      <div class="edit-panel">
+        <form id="drugForm" class="form-grid">
+          <input id="editingId" type="hidden" />
+          <label>药名
+            <input id="formName" required placeholder="例如：小柴胡颗粒" />
+          </label>
+          <label>别名/拼音
+            <input id="formAliases" placeholder="例如：xch, xiaochaihu, 感冒" />
+          </label>
+          <label>药柜
+            <select id="formCabinet"></select>
+          </label>
+          <label>类别
+            <input id="formCategory" placeholder="例如：感冒发热" />
+          </label>
+          <label>层数
+            <input id="formShelf" placeholder="例如：第 3 层" />
+          </label>
+          <label>左右位置
+            <input id="formSide" placeholder="例如：中间偏右" />
+          </label>
+          <label>照片编号
+            <input id="formPhotos" placeholder="例如：p01,p09" />
+          </label>
+          <label class="full">备注
+            <textarea id="formNote" placeholder="例如：蓝色会员条后面，旁边是四季感冒片"></textarea>
+          </label>
+        </form>
+        <div class="form-actions">
+          <button class="primary-btn" id="saveDrug" type="button">保存</button>
+          <button class="secondary-btn" id="resetForm" type="button">清空表单</button>
+          <button class="secondary-btn" id="exportData" type="button">导出</button>
+          <button class="danger-btn" id="clearCustom" type="button">清除新增</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs" aria-label="主导航">
+    <button class="tab-btn active" data-tab="search" type="button">搜索</button>
+    <button class="tab-btn" data-tab="cabinets" type="button">药柜</button>
+    <button class="tab-btn" data-tab="favorites" type="button">常用</button>
+    <button class="tab-btn" data-tab="edit" type="button">录入</button>
+  </nav>
+
+  <dialog id="photoDialog">
+    <div class="photo-modal">
+      <div class="modal-bar">
+        <div class="modal-title" id="modalTitle"></div>
+        <button class="modal-close" id="closeModal" type="button">关闭</button>
+      </div>
+      <div class="modal-scroll">
+        <img id="modalImage" alt="" />
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const PHOTO_ASSETS = {
+      p01: { id: "P01", thumb: "assets/photos/p01-thumb.jpg", full: "assets/photos/p01-full.jpg", note: "感冒止痛柜，正面近照" },
+      p02: { id: "P02", thumb: "assets/photos/p02-thumb.jpg", full: "assets/photos/p02-full.jpg", note: "退热止痛药，正面近照" },
+      p03: { id: "P03", thumb: "assets/photos/p03-thumb.jpg", full: "assets/photos/p03-full.jpg", note: "感冒/过敏/中成药侧面" },
+      p04: { id: "P04", thumb: "assets/photos/p04-thumb.jpg", full: "assets/photos/p04-full.jpg", note: "医保支付中成药柜" },
+      p05: { id: "P05", thumb: "assets/photos/p05-thumb.jpg", full: "assets/photos/p05-full.jpg", note: "其它用药左半柜" },
+      p06: { id: "P06", thumb: "assets/photos/p06-thumb.jpg", full: "assets/photos/p06-full.jpg", note: "抗过敏/晕车/补益药近照" },
+      p07: { id: "P07", thumb: "assets/photos/p07-thumb.jpg", full: "assets/photos/p07-full.jpg", note: "其它用药整柜" },
+      p08: { id: "P08", thumb: "assets/photos/p08-thumb.jpg", full: "assets/photos/p08-full.jpg", note: "医保支付中成药柜，竖图" },
+      p09: { id: "P09", thumb: "assets/photos/p09-thumb.jpg", full: "assets/photos/p09-full.jpg", note: "其它用药整柜，正面" },
+      p10: { id: "P10", thumb: "assets/photos/p10-thumb.jpg", full: "assets/photos/p10-full.jpg", note: "消化系统用药，上半柜" },
+      p11: { id: "P11", thumb: "assets/photos/p11-thumb.jpg", full: "assets/photos/p11-full.jpg", note: "消化系统用药，侧面" },
+      p12: { id: "P12", thumb: "assets/photos/p12-thumb.jpg", full: "assets/photos/p12-full.jpg", note: "胃药/消化药侧面" },
+      p13: { id: "P13", thumb: "assets/photos/p13-thumb.jpg", full: "assets/photos/p13-full.jpg", note: "其它用药侧面近照" },
+      p14: { id: "P14", thumb: "assets/photos/p14-thumb.jpg", full: "assets/photos/p14-full.jpg", note: "P13 重复照片" },
+      p15: { id: "P15", thumb: "assets/photos/p15-thumb.jpg", full: "assets/photos/p15-full.jpg", note: "P12 重复照片" },
+      p16: { id: "P16", thumb: "assets/photos/p16-thumb.jpg", full: "assets/photos/p16-full.jpg", note: "P11 重复照片" },
+      p17: { id: "P17", thumb: "assets/photos/p17-thumb.jpg", full: "assets/photos/p17-full.jpg", note: "消化系统柜远景" },
+      p18: { id: "P18", thumb: "assets/photos/p18-thumb.jpg", full: "assets/photos/p18-full.jpg", note: "消化系统柜右侧" },
+      p19: { id: "P19", thumb: "assets/photos/p19-thumb.jpg", full: "assets/photos/p19-full.jpg", note: "消化系统柜布局" },
+      p20: { id: "P20", thumb: "assets/photos/p20-thumb.jpg", full: "assets/photos/p20-full.jpg", note: "店内整体侧面布局" }
+    };
+
+    const CABINETS = [
+      { id: "A", name: "A 感冒发热止痛柜", desc: "蓝色会员条附近，常见感冒、退热、止痛、咳嗽药。", photos: ["p01", "p02", "p08", "p09"] },
+      { id: "B", name: "B 中成药/医保支付柜", desc: "贴有“医保支付”的中成药柜，地黄丸、补益、调理类集中在这里。", photos: ["p04", "p05", "p07", "p13"] },
+      { id: "C", name: "C 消化系统柜", desc: "绿色“消化系统用药”牌，胃药、肠胃、消化、口腔咽喉附近。", photos: ["p10", "p11", "p12", "p17", "p18", "p19"] },
+      { id: "D", name: "D 过敏晕车/调理柜", desc: "氯雷他定、茶苯海明、晕车药、补脾益肠丸等。", photos: ["p03", "p06"] },
+      { id: "E", name: "E 整体布局/备用照片", desc: "整柜和重复视角，找不到时用来对照整体方位。", photos: ["p15", "p16", "p20"] }
+    ];
+
+    const BASE_DRUGS = [
+      drug("风寒感冒颗粒", "A", "感冒发热", "第 1 层", "左侧", ["p01", "p08"], "黄色盒，旁边是小青龙颗粒", "fhgm, fenghan, 感冒, 风寒"),
+      drug("小青龙颗粒", "A", "感冒咳嗽", "第 1 层", "中间", ["p01", "p08"], "蓝色盒，风寒感冒颗粒右边", "xql, xiaoqinglong, 咳嗽, 鼻塞"),
+      drug("小柴胡颗粒", "A", "感冒发热", "第 1-2 层", "中间偏右", ["p01", "p08"], "棕色/橙色盒，感冒柜常见位置", "xch, xiaochaihu, 感冒, 发热"),
+      drug("荆防颗粒", "A", "感冒发热", "第 1 层", "最右侧", ["p01", "p08"], "白绿色盒，右侧竖放", "jf, jingfang, 风寒, 感冒"),
+      drug("四季感冒片", "A", "感冒发热", "第 2 层", "中间", ["p01", "p08"], "绿色大盒，旁边有对乙酰氨基酚", "sjgmp, siji, 感冒"),
+      drug("复方对乙酰氨基酚片", "A", "退热止痛", "第 2-3 层", "右侧", ["p01", "p02", "p08"], "有泰诺/感利通等包装，蓝白或红白盒", "ffdyxajfp, duiyixian, acetaminophen, 退烧, 止痛"),
+      drug("复方对乙酰氨基酚片(II)", "A", "退热止痛", "第 3 层", "中间偏右", ["p02"], "蓝白盒，标有 Sanlietong", "ffdyxajfp2, sanlietong, 退烧, 止痛"),
+      drug("三黄片", "A", "清热通便", "第 2-3 层", "右侧", ["p01", "p02"], "黄色盒，复方对乙酰氨基酚附近", "shp, sanhuang, 上火"),
+      drug("清开灵颗粒", "A", "清热解毒", "第 3 层", "左侧", ["p01", "p08"], "绿色盒，对乙酰氨基酚左边", "qkl, qingkailing, 清热, 嗓子"),
+      drug("对乙酰氨基酚片", "A", "退热止痛", "第 3 层", "中间偏左", ["p01", "p02"], "蓝白盒，标签价格约 9.9", "dyxajfp, duiyixian, acetaminophen, 退烧, 止痛"),
+      drug("维C银翘片", "A", "感冒发热", "第 3 层", "中间", ["p01", "p02"], "绿白盒，退热止痛药旁", "wcyqp, vc, yinqiao, 感冒"),
+      drug("布洛芬缓释胶囊", "A", "退热止痛", "第 4 层", "左侧", ["p02", "p09"], "红色盒，退热止痛区", "blf, buluofen, ibuprofen, 发烧, 止痛"),
+      drug("氨咖黄敏胶囊", "A", "感冒发热", "第 4 层", "中间", ["p02"], "白紫盒，布洛芬右侧", "akhm, 感冒"),
+      drug("感冒清热颗粒", "A", "感冒发热", "第 2-4 层", "中间偏左", ["p08", "p09"], "绿色白盒，感冒柜多处可见", "gmqr, ganmaoqingre, 感冒, 发热"),
+      drug("蒲公英颗粒", "A", "清热解毒", "第 2 层", "中间", ["p08"], "绿色盒，感冒止咳颗粒附近", "pgy, pugongying, 清热"),
+      drug("感冒止咳颗粒", "A", "感冒咳嗽", "第 2-3 层", "中间", ["p08", "p09"], "白绿色盒，蓝色会员条后面", "gmzk, 咳嗽, 感冒"),
+      drug("灵丹草颗粒", "A", "咽喉清热", "第 2 层", "右侧", ["p08"], "白色盒，感冒柜上半区", "ldc, 嗓子, 咽喉"),
+      drug("葛根汤合剂", "A", "感冒发热", "第 3 层", "中间", ["p08"], "红白盒，风热感冒颗粒附近", "ggt, gegen, 感冒"),
+      drug("风热感冒颗粒", "A", "感冒发热", "第 3-4 层", "中间", ["p08", "p09"], "绿色或橙绿色包装", "frgm, fengre, 感冒"),
+      drug("感冒咳嗽颗粒", "A", "感冒咳嗽", "第 3 层", "右侧", ["p08"], "蓝色包装，感冒柜右边", "gmks, 咳嗽"),
+      drug("金感胶囊", "A", "感冒发热", "第 3 层", "右侧", ["p08"], "白色盒，感冒柜右侧，照片部分遮挡", "jgj, 感冒", true),
+      drug("丹溪玉屏风颗粒", "A", "感冒调理", "第 2 层", "左侧", ["p08"], "白红盒，感冒柜左上区域", "dxypf, yupingfeng, 易感冒", true),
+      drug("荆防颗粒", "A", "感冒发热", "下层备用", "中间", ["p09", "p20"], "同名药在下层也能看到", "jingfang, jf, 感冒", true),
+
+      drug("知柏地黄丸", "B", "补益地黄", "上层/中下层", "中间偏左", ["p04", "p05"], "黄色盒，中成药柜多处可见", "zbdhw, dibuang, 地黄丸"),
+      drug("明目地黄丸", "B", "补益地黄", "第 2 层/下层", "左侧或中间", ["p04", "p07"], "浅绿色/蓝白盒，地黄丸区", "mmdhw, 眼睛, 地黄丸"),
+      drug("六味地黄丸", "B", "补益地黄", "第 2 层", "中间", ["p04", "p09"], "常在明目地黄丸和杞菊地黄丸附近，照片有遮挡", "lwdhw, 地黄丸", true),
+      drug("杞菊地黄丸", "B", "补益地黄", "中下层", "中间偏右", ["p04", "p07"], "白色盒，地黄丸一排", "qjdhw, 眼睛, 地黄丸"),
+      drug("桂附地黄丸", "B", "补益地黄", "下层", "右侧", ["p04", "p07"], "白色盒，杞菊地黄丸右边", "gfdhw, 地黄丸"),
+      drug("人参健脾丸", "B", "脾胃补益", "上层/下层", "中间", ["p04", "p07"], "黄色或棕色盒，牛黄上清丸附近也有", "rsjpw, 健脾, 脾胃"),
+      drug("牛黄上清丸", "B", "清热上火", "上层/下层", "中间偏左", ["p04", "p07"], "绿色盒，中成药柜上火类", "nhsqw, 上火, 牙痛"),
+      drug("黄连上清丸", "B", "清热上火", "中下层", "中间", ["p04", "p07", "p20"], "黄色/棕色盒，清热类一排", "hlsqw, 上火, 牙痛"),
+      drug("清胃黄连丸", "B", "清热上火", "上层", "中间偏右", ["p05", "p07"], "白绿盒，木香顺气丸附近", "qwhlw, 胃火, 上火"),
+      drug("归脾丸", "B", "补益调理", "下层", "中间偏右", ["p04", "p07"], "白色盒，补益药一排", "gpw, 归脾"),
+      drug("补中益气丸", "B", "补益调理", "中层", "中间", ["p07"], "白色盒，十全大补丸附近", "bzyqw, 补气"),
+      drug("十全大补丸", "B", "补益调理", "中层", "中间偏右", ["p07"], "白色盒，补中益气丸附近", "sqdbw, 大补"),
+      drug("保和丸", "B", "消食调理", "中层/下层", "右侧", ["p04", "p07"], "白黄盒，中成药调理区", "bhw, 消食, 胃"),
+      drug("保和颗粒", "B", "消食调理", "上层", "中间偏右", ["p07"], "白色盒，氯雷他定片附近", "bhkl, 消食"),
+      drug("橘红丸", "B", "咳嗽化痰", "中下层", "左侧", ["p04"], "黄色盒，养阴清肺丸左边", "jhw, 咳嗽, 化痰"),
+      drug("养阴清肺丸", "B", "咳嗽咽喉", "中下层", "左中", ["p04"], "绿色/蓝色盒，通宣理肺丸左边", "yyqfw, 咳嗽, 咽喉"),
+      drug("通宣理肺丸", "B", "咳嗽化痰", "中下层", "中间", ["p04"], "蓝色盒，养阴清肺丸右边", "txlfw, 咳嗽"),
+      drug("清咳丸", "B", "咳嗽化痰", "中下层", "右侧", ["p04"], "蓝白盒，杞菊地黄丸附近", "qkw, 咳嗽"),
+      drug("壮腰健肾丸", "B", "补益调理", "中层", "左侧", ["p04"], "大盒，保和丸左边", "zyjsw, 腰, 肾"),
+      drug("麻仁润肠丸", "B", "通便润肠", "底层/下层", "中间偏右", ["p04", "p08"], "棕色盒，柴胡舒肝丸附近", "mrrcw, 便秘, 通便"),
+      drug("槐角丸", "B", "通便痔疮", "底层", "左侧", ["p04"], "绿色盒，明目地黄丸左边", "hjw, 痔疮"),
+      drug("柴胡舒肝丸", "B", "疏肝调理", "底层", "右侧", ["p04"], "红白盒，麻仁润肠丸右边", "chsgw, 疏肝, 肝胃"),
+      drug("木香顺气丸", "B", "胃肠理气", "上层/下层", "右侧", ["p05", "p07"], "白棕盒，其它用药柜右侧", "mxsqw, 胃, 胀气"),
+      drug("防风通圣丸", "B", "清热解表", "上层/下层", "中间", ["p05", "p06", "p07"], "绿色盒，木香顺气丸附近", "fftsw, 上火, 感冒"),
+      drug("舒肝健胃丸", "B", "肝胃调理", "中层", "中间偏右", ["p05", "p07"], "白绿盒，龙胆泻肝片旁", "sgjww, 胃, 肝胃"),
+      drug("香砂养胃丸", "B", "胃肠调理", "中层", "中间", ["p05"], "白黑盒，龙胆泻肝片左边", "xsyww, 胃"),
+      drug("龙胆泻肝片", "B", "清热泻火", "中层", "中间", ["p05"], "黄色盒，香砂养胃丸右边", "ldxgp, 肝火"),
+      drug("跌打损伤丸", "B", "外伤骨痛", "中层", "右侧", ["p05", "p07"], "橙色盒，靠右侧", "ddssw, 跌打, 外伤"),
+      drug("五子衍宗丸", "B", "补益调理", "中层", "右侧", ["p07"], "白色盒，右侧中上层", "wzyzw, 补益"),
+      drug("肤痒颗粒", "B", "皮肤瘙痒", "中层", "右侧", ["p07"], "绿色/白色盒，五子衍宗丸附近", "fykl, 皮肤, 瘙痒", true),
+      drug("逍遥丸", "B", "调理", "下层", "中间偏右", ["p07"], "粉色小盒区域，健脾丸附近", "xyw, 调理"),
+      drug("健脾丸", "B", "脾胃补益", "下层", "中间偏右", ["p07"], "粉色/蓝色小盒区域", "jpw, 脾胃"),
+      drug("附子理中丸", "B", "脾胃调理", "下层", "中间偏右", ["p07"], "白色盒，明目地黄丸附近", "fzlzw, 胃寒"),
+      drug("大补阴丸", "B", "补益调理", "中下层", "右侧", ["p07"], "白色盒，十全大补丸附近", "dbyw, 补益"),
+      drug("镇阳固精丸", "B", "补益调理", "底层", "右侧", ["p07"], "黄黑盒，右下角区域", "zyg jw, 固精", true),
+
+      drug("盐酸苯环壬酯片", "D", "晕车止吐", "下层", "左侧", ["p06"], "蓝色盒，茶苯海明片左边", "ysbhnzp, 晕车, 止吐"),
+      drug("盐酸西替利嗪片", "D", "过敏", "下层", "中间偏左", ["p05", "p06"], "白蓝盒，抗过敏区", "ysxtlqp, xitilijing, 过敏"),
+      drug("茶苯海明片", "D", "晕车止吐", "下层", "中间", ["p06"], "白绿盒，氯雷他定片左边", "cbhmp, 晕车, 恶心"),
+      drug("氯雷他定片", "D", "过敏", "下层", "中间偏右", ["p05", "p06"], "蓝色盒，茶苯海明片右边", "lltdp, loratadine, 过敏, 鼻炎"),
+      drug("马来酸氯苯那敏片", "D", "过敏", "中下层", "右侧", ["p05", "p06"], "白蓝盒，过敏药附近", "mlslbnmp, 过敏"),
+      drug("苯巴比妥东莨菪碱片", "D", "晕车止吐", "中下层", "右侧", ["p06"], "黑橙盒，茶苯海明片附近，照片部分遮挡", "bbbt, 晕车", true),
+      drug("多维铁复合物胶囊", "D", "补铁补益", "下层", "中间", ["p06"], "红色盒，补脾益肠丸右边", "dw tfhwn, 补铁"),
+      drug("补脾益肠丸", "D", "脾胃肠道", "下层", "左侧", ["p06"], "白金盒，过敏/晕车柜下层", "bpycw, 肠胃"),
+      drug("正天丸", "D", "头痛", "下层", "左中", ["p06"], "黄色盒，补脾益肠丸附近", "ztw, 头痛"),
+      drug("三妙丸", "D", "清热调理", "下层", "左中", ["p06"], "白色盒，正天丸附近", "smw, 湿热"),
+
+      drug("胃乐新颗粒", "C", "胃肠消化", "上层", "左侧", ["p10", "p12"], "绿色盒，消化系统柜最上层", "wlxkl, 胃"),
+      drug("铝碳酸镁咀嚼片", "C", "胃酸胃痛", "上层/中层", "中间", ["p10", "p11", "p12"], "白色盒，胃药区多处可见", "ltsmjjp, 胃酸, 胃痛"),
+      drug("胶体果胶铋胶囊", "C", "胃肠消化", "上层", "中间偏右", ["p10"], "棕红盒，照片有遮挡", "jtgjb, 胃", true),
+      drug("多潘立酮片", "C", "胃肠消化", "中层/下层", "中间偏右", ["p10", "p11", "p12"], "红白盒或白盒，消化柜多处可见", "dpltp, 胃胀, 消化"),
+      drug("胃用舒乐片", "C", "胃肠消化", "中层", "中间", ["p10", "p11"], "白红盒，消化柜中层", "wyslp, 胃"),
+      drug("藿香清胃胶囊", "C", "胃肠消化", "中层", "右侧", ["p10", "p11"], "绿色/白色盒，多潘立酮片附近", "hxqwjn, 胃"),
+      drug("健胃消食片", "C", "胃肠消化", "中下层", "右侧", ["p11", "p18"], "大白盒，绿色标题，消化柜右侧多盒", "jwxs, 消食, 胃胀"),
+      drug("陈香露白露片", "C", "胃肠消化", "中下层", "左侧", ["p17"], "白红盒，消化柜左侧", "cxlblp, 胃"),
+      drug("肠炎宁片", "C", "肠胃腹泻", "中下层", "左侧", ["p17"], "白绿盒，消化柜左侧区域", "cynp, 腹泻, 拉肚子"),
+      drug("保和颗粒", "C", "消食调理", "中下层", "左侧", ["p17", "p18"], "蓝白盒，消化柜左下区域", "bhkl, 消食"),
+      drug("丁溴东莨菪碱胶囊", "C", "胃肠痉挛", "中下层", "右侧", ["p17", "p18"], "棕色盒，消化系统柜右下侧", "dbdldjjn, 胃痛", true),
+      drug("复方消化酶胶囊(II)", "C", "胃肠消化", "下层", "右侧", ["p11", "p12"], "白色大盒，消化柜右侧", "ffxhm, 消化"),
+      drug("复方黄连素片", "C", "肠胃腹泻", "下层", "中间", ["p19"], "白绿盒，消化柜下层", "ffhls, 腹泻"),
+      drug("口炎清颗粒", "C", "口腔咽喉", "中层", "中间", ["p19"], "黄色盒，清热咽喉区", "kyqkl, 口腔, 上火"),
+      drug("咽炎片", "C", "咽喉", "中层", "右侧", ["p19", "p20"], "浅蓝盒，喉痛灵片附近", "yyp, 咽喉, 嗓子"),
+      drug("喉痛灵片", "C", "咽喉", "中层", "右侧", ["p20"], "白蓝盒，咽炎片附近", "htlp, 嗓子, 咽痛"),
+      drug("抗菌消炎胶囊", "C", "清热消炎", "中下层", "右侧", ["p19"], "白绿盒，清热消炎宁片附近", "kjxyjn, 消炎"),
+      drug("清热消炎宁片", "C", "清热消炎", "中下层", "中间偏右", ["p19"], "绿色盒，抗菌消炎胶囊附近", "qrxy, 消炎"),
+      drug("北豆根胶囊", "C", "咽喉", "下层", "左侧", ["p19"], "白绿盒，清火栀麦片附近", "bdgjn, 咽喉"),
+      drug("清火栀麦片", "C", "清热上火", "下层", "中间", ["p19"], "黄色白盒，咽喉/清热区", "qhzmp, 上火, 咽喉"),
+      drug("蒲地蓝消炎片", "C", "清热消炎", "下层", "中间", ["p20"], "绿色盒，枇杷止咳颗粒附近", "pdlxyp, 消炎, 咽喉"),
+      drug("枇杷止咳颗粒", "C", "咳嗽化痰", "下层", "右侧", ["p20"], "黑棕盒，蒲地蓝消炎片旁", "ppzk, 咳嗽"),
+      drug("穿心莲内酯滴丸", "C", "清热消炎", "上层", "右侧", ["p17"], "白色盒，消化系统柜上方右侧", "cxl, 清热, 消炎"),
+      drug("多酶片", "C", "消化", "下层", "右侧", ["p18"], "红白盒，消化柜右侧，照片部分遮挡", "dmp, 消化", true)
+    ];
+
+    const QUICK_TERMS = ["感冒", "发烧", "咳嗽", "止痛", "胃", "腹泻", "过敏", "晕车", "上火", "咽喉", "地黄丸", "补益"];
+    const CUSTOM_KEY = "pharmacy-locator-custom-v1";
+    const FAVORITE_KEY = "pharmacy-locator-favorites-v1";
+    const RECENT_KEY = "pharmacy-locator-recent-v1";
+
+    const PINYIN_INITIALS = {
+      "风":"f","寒":"h","感":"g","冒":"m","颗":"k","粒":"l","小":"x","青":"q","龙":"l","柴":"c","胡":"h","荆":"j","防":"f","四":"s","季":"j","复":"f","方":"f","对":"d","乙":"y","酰":"x","氨":"a","基":"j","酚":"f","片":"p","三":"s","黄":"h","清":"q","开":"k","灵":"l","维":"w","银":"y","翘":"q","布":"b","洛":"l","芬":"f","缓":"h","释":"s","胶":"j","囊":"n","蒲":"p","公":"g","英":"y","止":"z","咳":"k","葛":"g","根":"g","汤":"t","合":"h","剂":"j","热":"r","丹":"d","溪":"x","玉":"y","屏":"p","金":"j","知":"z","柏":"b","地":"d","丸":"w","明":"m","目":"m","六":"l","味":"w","杞":"q","菊":"j","桂":"g","附":"f","人":"r","参":"s","健":"j","脾":"p","牛":"n","上":"s","连":"l","归":"g","补":"b","中":"z","益":"y","气":"q","十":"s","全":"q","大":"d","保":"b","和":"h","橘":"j","红":"h","养":"y","阴":"y","肺":"f","通":"t","宣":"x","理":"l","壮":"z","腰":"y","肾":"s","麻":"m","仁":"r","润":"r","肠":"c","槐":"h","角":"j","舒":"s","肝":"g","木":"m","香":"x","顺":"s","胃":"w","跌":"d","打":"d","损":"s","伤":"s","五":"w","子":"z","衍":"y","宗":"z","肤":"f","痒":"y","逍":"x","遥":"y","正":"z","盐":"y","酸":"s","苯":"b","环":"h","壬":"r","酯":"z","西":"x","替":"t","利":"l","嗪":"q","茶":"c","海":"h","雷":"l","他":"t","定":"d","马":"m","来":"l","敏":"m","巴":"b","比":"b","妥":"t","东":"d","莨":"l","菪":"d","碱":"j","多":"d","铁":"t","物":"w","胃":"w","乐":"l","新":"x","铝":"l","碳":"t","镁":"m","咀":"j","嚼":"j","果":"g","铋":"b","潘":"p","立":"l","酮":"t","用":"y","露":"l","白":"b","炎":"y","宁":"n","丁":"d","溴":"x","消":"x","化":"h","酶":"m","口":"k","咽":"y","喉":"h","痛":"t","菌":"j","蒲":"p","蓝":"l","枇":"p","杷":"p","穿":"c","心":"x","莲":"l","内":"n","滴":"d","二":"e"
+    };
+
+    const state = {
+      query: "",
+      activeTab: "search",
+      drugs: [],
+      custom: [],
+      favorites: new Set(),
+      recent: []
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function drug(name, cabinet, category, shelf, side, photos, note, aliases = "", uncertain = false) {
+      return {
+        id: "base-" + slug(name + "-" + cabinet + "-" + shelf + "-" + side + "-" + photos.join("-")),
+        name, cabinet, category, shelf, side, photos, note, aliases, uncertain,
+        source: "照片识别"
+      };
+    }
+
+    function slug(value) {
+      return String(value).toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, "-").replace(/^-|-$/g, "");
+    }
+
+    function normalize(value) {
+      return String(value || "").toLowerCase().replace(/[，,。.\s/()（）【】\[\]_-]+/g, "");
+    }
+
+    function initials(value) {
+      return Array.from(String(value || "")).map((ch) => PINYIN_INITIALS[ch] || (/[a-z0-9]/i.test(ch) ? ch.toLowerCase() : "")).join("");
+    }
+
+    function cabinetById(id) {
+      return CABINETS.find((cab) => cab.id === id) || CABINETS[0];
+    }
+
+    function loadStored() {
+      try { state.custom = JSON.parse(localStorage.getItem(CUSTOM_KEY) || "[]"); } catch { state.custom = []; }
+      try { state.favorites = new Set(JSON.parse(localStorage.getItem(FAVORITE_KEY) || "[]")); } catch { state.favorites = new Set(); }
+      try { state.recent = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); } catch { state.recent = []; }
+      state.drugs = [...BASE_DRUGS, ...state.custom];
+    }
+
+    function saveStored() {
+      localStorage.setItem(CUSTOM_KEY, JSON.stringify(state.custom));
+      localStorage.setItem(FAVORITE_KEY, JSON.stringify([...state.favorites]));
+      localStorage.setItem(RECENT_KEY, JSON.stringify(state.recent.slice(0, 30)));
+    }
+
+    function searchableText(item) {
+      const cab = cabinetById(item.cabinet);
+      const joined = [item.name, item.aliases, item.category, item.shelf, item.side, item.note, cab.name, cab.desc, initials(item.name)].join(" ");
+      return normalize(joined);
+    }
+
+    function rank(item, q) {
+      if (!q) return 1;
+      const name = normalize(item.name);
+      const all = searchableText(item);
+      if (name === q) return 100;
+      if (name.includes(q)) return 80;
+      if (normalize(initials(item.name)).includes(q)) return 72;
+      if (all.includes(q)) return 50;
+      return 0;
+    }
+
+    function getMatches() {
+      const q = normalize(state.query);
+      return state.drugs
+        .map((item) => ({ item, score: rank(item, q) }))
+        .filter((row) => row.score > 0)
+        .sort((a, b) => b.score - a.score || a.item.name.localeCompare(b.item.name, "zh-Hans-CN"))
+        .map((row) => row.item);
+    }
+
+    function render() {
+      $("drugCount").textContent = `${state.drugs.length} 个药`;
+      renderQuickTerms();
+      renderResults();
+      renderCabinets();
+      renderFavorites();
+      fillCabinetOptions();
+    }
+
+    function renderQuickTerms() {
+      $("quickRow").innerHTML = QUICK_TERMS.map((term, index) =>
+        `<button class="quick-chip ${index < 4 ? "hot" : ""}" type="button" data-quick="${term}">${term}</button>`
+      ).join("");
+    }
+
+    function renderResults() {
+      const matches = getMatches();
+      const q = state.query.trim();
+      $("resultStatus").textContent = q ? `找到 ${matches.length} 条：${q}` : "常见药品已按照片预录入，可直接搜索。";
+      $("results").innerHTML = matches.length
+        ? matches.slice(0, 80).map(cardTemplate).join("")
+        : `<div class="empty-panel">没有匹配结果。可以切到“药柜”看照片，或在“录入”里新增。</div>`;
+    }
+
+    function renderCabinets() {
+      $("cabinetGrid").innerHTML = CABINETS.map((cab) => {
+        const first = PHOTO_ASSETS[cab.photos[0]];
+        const count = state.drugs.filter((d) => d.cabinet === cab.id).length;
+        return `
+          <article class="cabinet-card">
+            <img src="${first.thumb}" alt="${cab.name}" loading="lazy">
+            <div class="cabinet-body">
+              <h2>${cab.name}</h2>
+              <p>${cab.desc}</p>
+              <div class="tag-row">
+                <span class="mini-tag">${count} 个药</span>
+                <span class="mini-tag">${cab.photos.map((p) => PHOTO_ASSETS[p].id).join(" / ")}</span>
+              </div>
+              <div class="photo-strip">
+                ${cab.photos.map(photoButton).join("")}
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderFavorites() {
+      const favItems = state.drugs.filter((d) => state.favorites.has(d.id));
+      const recentItems = state.recent.map((id) => state.drugs.find((d) => d.id === id)).filter(Boolean);
+      const combined = [...favItems, ...recentItems.filter((item) => !state.favorites.has(item.id))];
+      $("favoriteStatus").textContent = combined.length ? `常用和最近打开 ${combined.length} 条` : "点药品卡片上的“常用”后会出现在这里。";
+      $("favorites").innerHTML = combined.length ? combined.map(cardTemplate).join("") : `<div class="empty-panel">还没有常用药。</div>`;
+    }
+
+    function cardTemplate(item) {
+      const cab = cabinetById(item.cabinet);
+      const photos = (item.photos || []).filter((p) => PHOTO_ASSETS[p]);
+      const isFav = state.favorites.has(item.id);
+      return `
+        <article class="drug-card">
+          <div class="drug-head">
+            <h2 class="drug-name">${escapeHtml(item.name)}</h2>
+            <span class="badge ${item.uncertain ? "warn" : ""}">${item.uncertain ? "看图核对" : "照片清晰"}</span>
+          </div>
+          <div class="loc-line">
+            <div><strong>${cab.name}</strong></div>
+            <div>${escapeHtml(item.shelf)}，${escapeHtml(item.side)}</div>
+            <div>${escapeHtml(item.note || "")}</div>
+          </div>
+          <div class="tag-row">
+            <span class="mini-tag">${escapeHtml(item.category || "未分类")}</span>
+            ${photos.map((p) => `<span class="mini-tag">${PHOTO_ASSETS[p].id}</span>`).join("")}
+          </div>
+          <div class="actions">
+            <button class="primary-btn" type="button" data-open="${photos[0] || cab.photos[0]}" data-title="${escapeAttr(item.name + " - " + cab.name)}">看照片</button>
+            <button class="secondary-btn" type="button" data-fav="${item.id}">${isFav ? "取消常用" : "常用"}</button>
+            <button class="secondary-btn" type="button" data-edit="${item.id}">修改</button>
+            <button class="secondary-btn" type="button" data-more="${item.id}">同柜照片</button>
+          </div>
+        </article>
+      `;
+    }
+
+    function photoButton(id) {
+      const photo = PHOTO_ASSETS[id];
+      return `
+        <button class="photo-thumb-btn" type="button" data-open="${id}" data-title="${escapeAttr(photo.id + " - " + photo.note)}">
+          <img src="${photo.thumb}" alt="${photo.id}" loading="lazy">
+          <span>${photo.id}</span>
+        </button>
+      `;
+    }
+
+    function fillCabinetOptions() {
+      const select = $("formCabinet");
+      if (select.options.length) return;
+      select.innerHTML = CABINETS.map((cab) => `<option value="${cab.id}">${cab.name}</option>`).join("");
+    }
+
+    function openPhoto(photoId, title) {
+      const photo = PHOTO_ASSETS[photoId];
+      if (!photo) return;
+      $("modalTitle").textContent = title || `${photo.id} - ${photo.note}`;
+      $("modalImage").src = photo.full;
+      $("modalImage").alt = title || photo.note;
+      $("photoDialog").showModal();
+    }
+
+    function toggleFavorite(id) {
+      if (state.favorites.has(id)) state.favorites.delete(id);
+      else state.favorites.add(id);
+      saveStored();
+      renderResults();
+      renderFavorites();
+    }
+
+    function rememberRecent(id) {
+      state.recent = [id, ...state.recent.filter((x) => x !== id)].slice(0, 30);
+      saveStored();
+    }
+
+    function editDrug(id) {
+      const item = state.drugs.find((d) => d.id === id);
+      if (!item) return;
+      switchTab("edit");
+      $("editingId").value = item.id.startsWith("custom-") ? item.id : "";
+      $("formName").value = item.name || "";
+      $("formAliases").value = item.aliases || "";
+      $("formCabinet").value = item.cabinet || "A";
+      $("formCategory").value = item.category || "";
+      $("formShelf").value = item.shelf || "";
+      $("formSide").value = item.side || "";
+      $("formPhotos").value = (item.photos || []).join(",");
+      $("formNote").value = item.note || "";
+      if (!item.id.startsWith("custom-")) toast("已复制到表单，保存后会作为新增记录保留。");
+    }
+
+    function showCabinetPhotos(id) {
+      const item = state.drugs.find((d) => d.id === id);
+      if (!item) return;
+      const cab = cabinetById(item.cabinet);
+      openPhoto(cab.photos[0], `${item.name} - ${cab.name}`);
+    }
+
+    function saveForm() {
+      const name = $("formName").value.trim();
+      if (!name) {
+        toast("先填写药名");
+        return;
+      }
+      const existingId = $("editingId").value.trim();
+      const item = {
+        id: existingId || "custom-" + Date.now(),
+        name,
+        aliases: $("formAliases").value.trim(),
+        cabinet: $("formCabinet").value,
+        category: $("formCategory").value.trim() || "自定义",
+        shelf: $("formShelf").value.trim() || "待补充层数",
+        side: $("formSide").value.trim() || "待补充左右位置",
+        photos: $("formPhotos").value.split(",").map((p) => p.trim().toLowerCase()).filter((p) => PHOTO_ASSETS[p]),
+        note: $("formNote").value.trim(),
+        uncertain: false,
+        source: "手动录入"
+      };
+      const idx = state.custom.findIndex((d) => d.id === item.id);
+      if (idx >= 0) state.custom[idx] = item;
+      else state.custom.push(item);
+      state.drugs = [...BASE_DRUGS, ...state.custom];
+      saveStored();
+      resetForm();
+      render();
+      switchTab("search");
+      $("searchInput").value = item.name;
+      state.query = item.name;
+      renderResults();
+      toast("已保存");
+    }
+
+    function resetForm() {
+      $("editingId").value = "";
+      $("drugForm").reset();
+      $("formCabinet").value = "A";
+    }
+
+    function exportCustomData() {
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        custom: state.custom,
+        favorites: [...state.favorites]
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "药品位置新增数据.json";
+      a.click();
+      URL.revokeObjectURL(url);
+      toast("已导出");
+    }
+
+    function clearCustomData() {
+      if (!confirm("清除所有手动新增的药品？")) return;
+      state.custom = [];
+      state.drugs = [...BASE_DRUGS];
+      saveStored();
+      render();
+      toast("已清除新增");
+    }
+
+    function switchTab(tab) {
+      state.activeTab = tab;
+      document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === tab));
+      document.querySelectorAll(".section").forEach((section) => section.classList.remove("active"));
+      $(`view-${tab}`).classList.add("active");
+      if (tab === "search") $("searchInput").focus({ preventScroll: true });
+    }
+
+    function toast(message) {
+      const node = $("toast");
+      node.textContent = message;
+      node.classList.add("show");
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => node.classList.remove("show"), 1800);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/`/g, "&#96;");
+    }
+
+    function bindEvents() {
+      $("searchInput").addEventListener("input", (event) => {
+        state.query = event.target.value;
+        renderResults();
+      });
+      $("clearSearch").addEventListener("click", () => {
+        state.query = "";
+        $("searchInput").value = "";
+        renderResults();
+        $("searchInput").focus();
+      });
+      document.addEventListener("click", (event) => {
+        const target = event.target.closest("button");
+        if (!target) return;
+        if (target.dataset.tab) switchTab(target.dataset.tab);
+        if (target.dataset.quick) {
+          state.query = target.dataset.quick;
+          $("searchInput").value = state.query;
+          switchTab("search");
+          renderResults();
+        }
+        if (target.dataset.open) {
+          const card = target.closest(".drug-card");
+          const editId = card?.querySelector("[data-edit]")?.dataset.edit;
+          if (editId) rememberRecent(editId);
+          openPhoto(target.dataset.open, target.dataset.title);
+        }
+        if (target.dataset.fav) toggleFavorite(target.dataset.fav);
+        if (target.dataset.edit) editDrug(target.dataset.edit);
+        if (target.dataset.more) showCabinetPhotos(target.dataset.more);
+      });
+      $("closeModal").addEventListener("click", () => $("photoDialog").close());
+      $("saveDrug").addEventListener("click", saveForm);
+      $("resetForm").addEventListener("click", resetForm);
+      $("exportData").addEventListener("click", exportCustomData);
+      $("clearCustom").addEventListener("click", clearCustomData);
+    }
+
+    loadStored();
+    bindEvents();
+    render();
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    }
+  </script>
+</body>
+</html>
