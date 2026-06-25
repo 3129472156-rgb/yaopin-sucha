@@ -11,19 +11,20 @@
   <style>
     :root {
       color-scheme: light;
-      --bg: #f5f6f2;
-      --ink: #16211f;
-      --muted: #61706c;
-      --line: #d8ddd6;
+      --bg: #f6f7f4;
+      --ink: #17201e;
+      --muted: #65736f;
+      --line: #d9ded8;
       --panel: #ffffff;
-      --brand: #0b7a75;
-      --brand-2: #0f5d8f;
-      --warm: #b15d17;
+      --brand: #0a756f;
+      --brand-2: #1f6f9d;
+      --warm: #a85a13;
       --danger: #b23a48;
       --soft: #eaf5f1;
       --soft-blue: #ebf3fb;
       --soft-warm: #fff1df;
-      --shadow: 0 8px 24px rgba(20, 30, 28, .08);
+      --soft-red: #fff0f2;
+      --shadow: 0 10px 28px rgba(23, 32, 30, .09);
     }
 
     * { box-sizing: border-box; }
@@ -32,7 +33,8 @@
       margin: 0;
       min-height: 100vh;
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
-      background: var(--bg);
+      background:
+        linear-gradient(180deg, #eef5f1 0, #f6f7f4 210px, #f6f7f4 100%);
       color: var(--ink);
     }
 
@@ -49,7 +51,7 @@
     .app-shell {
       max-width: 980px;
       margin: 0 auto;
-      padding: 0 14px 88px;
+      padding: 0 14px 92px;
     }
 
     .topbar {
@@ -57,8 +59,8 @@
       top: 0;
       z-index: 20;
       margin: 0 -14px;
-      padding: calc(env(safe-area-inset-top) + 10px) 14px 12px;
-      background: linear-gradient(180deg, #f5f6f2 0%, rgba(245, 246, 242, .94) 100%);
+      padding: calc(env(safe-area-inset-top) + 12px) 14px 12px;
+      background: linear-gradient(180deg, #eef5f1 0%, rgba(246, 247, 244, .96) 100%);
       backdrop-filter: blur(18px);
       border-bottom: 1px solid rgba(216, 221, 214, .8);
     }
@@ -73,7 +75,7 @@
 
     h1 {
       margin: 0;
-      font-size: 22px;
+      font-size: 24px;
       letter-spacing: 0;
       line-height: 1.2;
     }
@@ -96,7 +98,7 @@
       gap: 8px;
       min-height: 50px;
       padding: 6px 8px 6px 12px;
-      border: 2px solid rgba(11, 122, 117, .2);
+      border: 2px solid rgba(10, 117, 111, .18);
       background: var(--panel);
       border-radius: 8px;
       box-shadow: var(--shadow);
@@ -141,8 +143,8 @@
       width: min(980px, 100%);
       transform: translateX(-50%);
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
       padding: 8px 10px calc(env(safe-area-inset-bottom) + 8px);
       background: rgba(255, 255, 255, .94);
       border-top: 1px solid var(--line);
@@ -150,11 +152,13 @@
     }
 
     .tab-btn {
-      min-height: 46px;
+      min-height: 48px;
+      padding: 0 2px;
       border-radius: 8px;
       color: var(--muted);
       background: transparent;
       font-weight: 800;
+      font-size: 14px;
     }
 
     .tab-btn.active {
@@ -209,7 +213,7 @@
       gap: 10px;
     }
 
-    .drug-card, .cabinet-card, .edit-panel, .empty-panel {
+    .drug-card, .cabinet-card, .edit-panel, .empty-panel, .advisor-panel, .advice-card {
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -420,6 +424,119 @@
       margin-top: 10px;
     }
 
+    .advisor-panel {
+      padding: 12px;
+      margin-bottom: 12px;
+      border-color: rgba(31, 111, 157, .18);
+    }
+
+    .advisor-input {
+      min-height: 110px;
+      font-size: 17px;
+      line-height: 1.45;
+    }
+
+    .advisor-actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .safety-note {
+      margin: 10px 0 0;
+      padding: 9px 10px;
+      border-radius: 8px;
+      background: var(--soft-blue);
+      color: #28536b;
+      line-height: 1.45;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .advice-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .advice-card {
+      padding: 12px;
+    }
+
+    .advice-card.alert {
+      border-color: #efb0b9;
+      background: var(--soft-red);
+    }
+
+    .advice-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .advice-title h2 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.25;
+    }
+
+    .advice-body {
+      display: grid;
+      gap: 8px;
+      color: var(--ink);
+      line-height: 1.45;
+    }
+
+    .candidate-list {
+      display: grid;
+      gap: 7px;
+    }
+
+    .candidate {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfa;
+    }
+
+    .candidate strong {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 2px;
+    }
+
+    .candidate small {
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .tiny-btn {
+      min-height: 34px;
+      padding: 0 9px;
+      border-radius: 8px;
+      background: var(--soft);
+      color: var(--brand);
+      font-size: 13px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .photo-fix-note {
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      background: var(--soft);
+      color: var(--brand);
+      line-height: 1.45;
+      font-weight: 800;
+    }
+
     .empty-panel {
       padding: 18px 14px;
       color: var(--muted);
@@ -535,7 +652,23 @@
       <div class="results" id="results"></div>
     </section>
 
+    <section class="section" id="view-advisor">
+      <div class="advisor-panel">
+        <label>描述症状或疾病
+          <textarea class="advisor-input" id="symptomInput" placeholder="例如：发烧头痛、嗓子疼、胃酸胃痛、腹泻、皮肤过敏、晕车"></textarea>
+        </label>
+        <div class="advisor-actions">
+          <button class="primary-btn" id="askAdvisor" type="button">生成建议</button>
+          <button class="secondary-btn" id="clearAdvisor" type="button">清空</button>
+        </div>
+        <div class="quick-row" id="symptomQuickRow"></div>
+        <p class="safety-note">仅供药师辅助判断；孕妇、儿童、老人、基础病、症状严重或持续加重，先问医生。</p>
+      </div>
+      <div class="advice-list" id="adviceList"></div>
+    </section>
+
     <section class="section" id="view-cabinets">
+      <div class="photo-fix-note">已回正照片：P03、P10、P11、P12、P13、P14、P15、P16、P17、P18、P19、P20。</div>
       <div class="cabinet-grid" id="cabinetGrid"></div>
     </section>
 
@@ -585,6 +718,7 @@
 
   <nav class="tabs" aria-label="主导航">
     <button class="tab-btn active" data-tab="search" type="button">搜索</button>
+    <button class="tab-btn" data-tab="advisor" type="button">问症</button>
     <button class="tab-btn" data-tab="cabinets" type="button">药柜</button>
     <button class="tab-btn" data-tab="favorites" type="button">常用</button>
     <button class="tab-btn" data-tab="edit" type="button">录入</button>
@@ -628,6 +762,8 @@
       p20: { id: "P20", thumb: "assets/photos/p20-thumb.jpg", full: "assets/photos/p20-full.jpg", note: "店内整体侧面布局" }
     };
 
+    const ROTATED_PHOTOS = new Set(["p03", "p10", "p11", "p12", "p13", "p14", "p15", "p16", "p17", "p18", "p19", "p20"]);
+
     const CABINETS = [
       { id: "A", name: "A 感冒发热止痛柜", desc: "蓝色会员条附近，常见感冒、退热、止痛、咳嗽药。", photos: ["p01", "p02", "p08", "p09"] },
       { id: "B", name: "B 中成药/医保支付柜", desc: "贴有“医保支付”的中成药柜，地黄丸、补益、调理类集中在这里。", photos: ["p04", "p05", "p07", "p13"] },
@@ -648,6 +784,7 @@
       drug("清开灵颗粒", "A", "清热解毒", "第 3 层", "左侧", ["p01", "p08"], "绿色盒，对乙酰氨基酚左边", "qkl, qingkailing, 清热, 嗓子"),
       drug("对乙酰氨基酚片", "A", "退热止痛", "第 3 层", "中间偏左", ["p01", "p02"], "蓝白盒，标签价格约 9.9", "dyxajfp, duiyixian, acetaminophen, 退烧, 止痛"),
       drug("维C银翘片", "A", "感冒发热", "第 3 层", "中间", ["p01", "p02"], "绿白盒，退热止痛药旁", "wcyqp, vc, yinqiao, 感冒"),
+      drug("银翘解毒颗粒", "A", "风热咽痛", "第 1 层", "中间偏右", ["p08", "p20"], "白蓝盒，感冒柜上半区，照片部分遮挡", "yqjd, yinqiao, 风热, 咽痛, 上火", true),
       drug("布洛芬缓释胶囊", "A", "退热止痛", "第 4 层", "左侧", ["p02", "p09"], "红色盒，退热止痛区", "blf, buluofen, ibuprofen, 发烧, 止痛"),
       drug("氨咖黄敏胶囊", "A", "感冒发热", "第 4 层", "中间", ["p02"], "白紫盒，布洛芬右侧", "akhm, 感冒"),
       drug("感冒清热颗粒", "A", "感冒发热", "第 2-4 层", "中间偏左", ["p08", "p09"], "绿色白盒，感冒柜多处可见", "gmqr, ganmaoqingre, 感冒, 发热"),
@@ -735,6 +872,93 @@
     ];
 
     const QUICK_TERMS = ["感冒", "发烧", "咳嗽", "止痛", "胃", "腹泻", "过敏", "晕车", "上火", "咽喉", "地黄丸", "补益"];
+    const SYMPTOM_TERMS = ["发烧头痛", "风寒感冒", "嗓子疼", "咳嗽有痰", "胃酸胃痛", "胃胀消化差", "腹泻", "过敏鼻炎", "晕车", "便秘"];
+    const RED_FLAG_RULES = [
+      { words: ["胸痛", "胸闷", "呼吸困难", "喘不上气", "气促"], message: "有胸痛、胸闷或呼吸困难，先就医或急诊，不建议自行配药。" },
+      { words: ["抽搐", "昏迷", "意识不清", "说不清话"], message: "出现抽搐、昏迷或意识异常，先急诊处理。" },
+      { words: ["便血", "黑便", "呕血", "剧烈腹痛"], message: "便血、黑便、呕血或剧烈腹痛，先就医排查。" },
+      { words: ["孕妇", "怀孕", "哺乳", "婴儿", "幼儿"], message: "孕妇、哺乳期、婴幼儿用药需要医生或药师单独判断。" },
+      { words: ["40度", "40℃", "高烧不退", "发烧三天", "发热三天"], message: "高热或发热持续不退，先建议就医，不只按普通感冒处理。" }
+    ];
+    const ADVISOR_RULES = [
+      {
+        title: "发热、头痛、肌肉痛",
+        words: ["发烧", "发热", "头痛", "头疼", "全身痛", "肌肉痛", "退烧", "止痛"],
+        reason: "这类症状优先考虑解热镇痛药，先确认年龄、肝肾情况、是否喝酒和是否已服复方感冒药。",
+        caution: "不要重复使用多种含对乙酰氨基酚的感冒药；持续高热或精神差先就医。",
+        medicines: ["对乙酰氨基酚片", "布洛芬缓释胶囊", "复方对乙酰氨基酚片"]
+      },
+      {
+        title: "普通感冒、鼻塞流涕",
+        words: ["感冒", "鼻塞", "流鼻涕", "打喷嚏", "轻微发冷", "流涕"],
+        reason: "普通感冒先按主要症状对症处理，再让药师继续区分风寒、风热或过敏性鼻炎。",
+        caution: "如果高热、气短、胸痛、老人儿童或症状持续加重，先建议就医。",
+        medicines: ["小柴胡颗粒", "感冒清热颗粒", "四季感冒片", "维C银翘片"]
+      },
+      {
+        title: "风寒样感冒",
+        words: ["怕冷", "流清鼻涕", "清鼻涕", "鼻塞", "风寒", "受凉", "无汗"],
+        reason: "怕冷、清涕、受凉后不适时，可让药师按风寒方向辨证。",
+        caution: "如果咽痛明显、黄痰黄涕或高热，可能不是风寒方向。",
+        medicines: ["风寒感冒颗粒", "荆防颗粒", "小青龙颗粒"]
+      },
+      {
+        title: "风热、咽痛、上火",
+        words: ["嗓子疼", "咽痛", "喉咙痛", "上火", "口干", "黄鼻涕", "黄痰", "风热", "牙痛"],
+        reason: "咽痛、口干、黄痰黄涕偏清热解毒或风热感冒方向。",
+        caution: "扁桃体化脓、吞咽困难、发热明显或反复加重，应建议就医。",
+        medicines: ["银翘解毒颗粒", "风热感冒颗粒", "蒲地蓝消炎片", "口炎清颗粒", "喉痛灵片"]
+      },
+      {
+        title: "咳嗽、痰多",
+        words: ["咳嗽", "咳痰", "有痰", "痰多", "干咳", "化痰"],
+        reason: "先分清干咳、痰多、黄痰或伴发热，再选止咳化痰或感冒咳嗽方向。",
+        caution: "喘憋、胸痛、咳血、老人基础病或咳嗽超过一周，需要医生判断。",
+        medicines: ["感冒咳嗽颗粒", "枇杷止咳颗粒", "橘红丸", "养阴清肺丸"]
+      },
+      {
+        title: "胃酸、胃痛",
+        words: ["胃酸", "反酸", "烧心", "胃痛", "胃疼", "胃不舒服"],
+        reason: "反酸烧心和轻度胃痛可先看胃酸胃痛类药，药师需问是否黑便、呕血、长期胃病。",
+        caution: "剧烈腹痛、黑便、呕血、胸痛样疼痛，不按普通胃痛处理。",
+        medicines: ["铝碳酸镁咀嚼片", "胃乐新颗粒", "陈香露白露片", "胃用舒乐片"]
+      },
+      {
+        title: "胃胀、消化差",
+        words: ["胃胀", "腹胀", "消化不良", "吃多了", "积食", "恶心", "嗳气"],
+        reason: "饭后胀满、消化差可考虑助消化或胃动力方向，先排除急腹痛和孕妇儿童。",
+        caution: "多潘立酮有用药限制，心脏病、合用药较多者需谨慎。",
+        medicines: ["健胃消食片", "多酶片", "复方消化酶胶囊(II)", "多潘立酮片", "保和颗粒"]
+      },
+      {
+        title: "腹泻、拉肚子",
+        words: ["腹泻", "拉肚子", "水样便", "肚子痛", "肠炎"],
+        reason: "轻度腹泻可先考虑肠胃止泻/清热类候选，同时提醒补水。",
+        caution: "便血、高热、脱水、剧烈腹痛、老人儿童或持续超过两天，先就医。",
+        medicines: ["肠炎宁片", "复方黄连素片", "藿香清胃胶囊"]
+      },
+      {
+        title: "过敏、鼻炎、皮肤痒",
+        words: ["过敏", "鼻炎", "打喷嚏", "流鼻涕", "皮肤痒", "荨麻疹", "眼痒"],
+        reason: "打喷嚏、流涕、皮肤瘙痒常见候选为抗过敏药，需询问嗜睡和驾驶。",
+        caution: "喉头水肿、呼吸困难、全身严重皮疹要急诊；部分抗过敏药会犯困。",
+        medicines: ["氯雷他定片", "盐酸西替利嗪片", "马来酸氯苯那敏片", "肤痒颗粒"]
+      },
+      {
+        title: "晕车、恶心",
+        words: ["晕车", "晕船", "恶心", "想吐", "呕吐", "出行"],
+        reason: "出行前晕车可考虑晕车止吐方向，重点提醒嗜睡和驾驶风险。",
+        caution: "青光眼、前列腺问题、老人或合用镇静药需谨慎。",
+        medicines: ["茶苯海明片", "盐酸苯环壬酯片", "苯巴比妥东莨菪碱片"]
+      },
+      {
+        title: "便秘、排便困难",
+        words: ["便秘", "大便干", "排便困难", "几天没拉"],
+        reason: "轻度便秘可考虑润肠通便方向，同时提醒补水和饮食。",
+        caution: "腹痛明显、呕吐、长期便秘或老人突然改变排便习惯，先就医。",
+        medicines: ["麻仁润肠丸", "三黄片", "槐角丸"]
+      }
+    ];
     const CUSTOM_KEY = "pharmacy-locator-custom-v1";
     const FAVORITE_KEY = "pharmacy-locator-favorites-v1";
     const RECENT_KEY = "pharmacy-locator-recent-v1";
@@ -820,6 +1044,7 @@
     function render() {
       $("drugCount").textContent = `${state.drugs.length} 个药`;
       renderQuickTerms();
+      renderSymptomQuickTerms();
       renderResults();
       renderCabinets();
       renderFavorites();
@@ -830,6 +1055,93 @@
       $("quickRow").innerHTML = QUICK_TERMS.map((term, index) =>
         `<button class="quick-chip ${index < 4 ? "hot" : ""}" type="button" data-quick="${term}">${term}</button>`
       ).join("");
+    }
+
+    function renderSymptomQuickTerms() {
+      $("symptomQuickRow").innerHTML = SYMPTOM_TERMS.map((term, index) =>
+        `<button class="quick-chip ${index < 5 ? "hot" : ""}" type="button" data-symptom="${term}">${term}</button>`
+      ).join("");
+      if (!$("adviceList").innerHTML) {
+        $("adviceList").innerHTML = `<div class="empty-panel">输入症状后，会给出候选药、简短理由和提醒。结果只给药师辅助判断，不替代问诊。</div>`;
+      }
+    }
+
+    function findDrugByName(name) {
+      const normalized = normalize(name);
+      return state.drugs.find((item) => normalize(item.name) === normalized) ||
+        state.drugs.find((item) => normalize(item.name).includes(normalized));
+    }
+
+    function analyzeSymptoms(rawText) {
+      const text = normalize(rawText);
+      if (!text) {
+        $("adviceList").innerHTML = `<div class="empty-panel">先输入症状，例如“发烧头痛”“胃酸胃痛”“皮肤过敏”。</div>`;
+        return;
+      }
+
+      const redFlags = RED_FLAG_RULES.filter((rule) => rule.words.some((word) => text.includes(normalize(word))));
+      const scored = ADVISOR_RULES
+        .map((rule) => ({
+          rule,
+          score: rule.words.reduce((total, word) => total + (text.includes(normalize(word)) ? 1 : 0), 0)
+        }))
+        .filter((row) => row.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .map((row) => row.rule);
+
+      const cards = [];
+      if (redFlags.length) {
+        cards.push(`
+          <article class="advice-card alert">
+            <div class="advice-title">
+              <h2>先人工判断</h2>
+              <span class="badge warn">谨慎</span>
+            </div>
+            <div class="advice-body">
+              ${redFlags.map((item) => `<div>${escapeHtml(item.message)}</div>`).join("")}
+            </div>
+          </article>
+        `);
+      }
+
+      if (!scored.length) {
+        cards.push(`<div class="empty-panel">没有匹配到明确场景。建议先用药名搜索，或让药师补充症状关键词后再判断。</div>`);
+      } else {
+        cards.push(...scored.slice(0, 3).map(adviceTemplate));
+      }
+
+      $("adviceList").innerHTML = cards.join("");
+    }
+
+    function adviceTemplate(rule) {
+      const candidates = rule.medicines.map((name) => {
+        const item = findDrugByName(name);
+        const cab = item ? cabinetById(item.cabinet) : null;
+        const place = item ? `${cab.name}，${item.shelf}，${item.side}` : "未录入位置";
+        return `
+          <div class="candidate">
+            <div>
+              <strong>${escapeHtml(name)}</strong>
+              <small>${escapeHtml(place)}</small>
+            </div>
+            ${item ? `<button class="tiny-btn" type="button" data-find-drug="${escapeAttr(item.name)}">看位置</button>` : `<span class="mini-tag">待录入</span>`}
+          </div>
+        `;
+      }).join("");
+
+      return `
+        <article class="advice-card">
+          <div class="advice-title">
+            <h2>${escapeHtml(rule.title)}</h2>
+            <span class="badge">候选</span>
+          </div>
+          <div class="advice-body">
+            <div><strong>理由：</strong>${escapeHtml(rule.reason)}</div>
+            <div class="candidate-list">${candidates}</div>
+            <div><strong>提醒：</strong>${escapeHtml(rule.caution)}</div>
+          </div>
+        </article>
+      `;
     }
 
     function renderResults() {
@@ -903,10 +1215,11 @@
 
     function photoButton(id) {
       const photo = PHOTO_ASSETS[id];
+      const fixed = ROTATED_PHOTOS.has(id) ? " 已回正" : "";
       return `
-        <button class="photo-thumb-btn" type="button" data-open="${id}" data-title="${escapeAttr(photo.id + " - " + photo.note)}">
+        <button class="photo-thumb-btn" type="button" data-open="${id}" data-title="${escapeAttr(photo.id + fixed + " - " + photo.note)}">
           <img src="${photo.thumb}" alt="${photo.id}" loading="lazy">
-          <span>${photo.id}</span>
+          <span>${photo.id}${fixed}</span>
         </button>
       `;
     }
@@ -1033,6 +1346,7 @@
       document.querySelectorAll(".section").forEach((section) => section.classList.remove("active"));
       $(`view-${tab}`).classList.add("active");
       if (tab === "search") $("searchInput").focus({ preventScroll: true });
+      if (tab === "advisor") $("symptomInput").focus({ preventScroll: true });
     }
 
     function toast(message) {
@@ -1072,6 +1386,17 @@
           switchTab("search");
           renderResults();
         }
+        if (target.dataset.symptom) {
+          $("symptomInput").value = target.dataset.symptom;
+          switchTab("advisor");
+          analyzeSymptoms(target.dataset.symptom);
+        }
+        if (target.dataset.findDrug) {
+          state.query = target.dataset.findDrug;
+          $("searchInput").value = state.query;
+          switchTab("search");
+          renderResults();
+        }
         if (target.dataset.open) {
           const card = target.closest(".drug-card");
           const editId = card?.querySelector("[data-edit]")?.dataset.edit;
@@ -1087,6 +1412,12 @@
       $("resetForm").addEventListener("click", resetForm);
       $("exportData").addEventListener("click", exportCustomData);
       $("clearCustom").addEventListener("click", clearCustomData);
+      $("askAdvisor").addEventListener("click", () => analyzeSymptoms($("symptomInput").value));
+      $("clearAdvisor").addEventListener("click", () => {
+        $("symptomInput").value = "";
+        $("adviceList").innerHTML = `<div class="empty-panel">输入症状后，会给出候选药、简短理由和提醒。结果只给药师辅助判断，不替代问诊。</div>`;
+        $("symptomInput").focus();
+      });
     }
 
     loadStored();

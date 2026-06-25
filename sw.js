@@ -1,4 +1,4 @@
-const CACHE_NAME = "pharmacy-locator-v1";
+const CACHE_NAME = "pharmacy-locator-v2";
 const ASSETS = [
   "./",
   "./index.html",
